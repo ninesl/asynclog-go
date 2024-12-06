@@ -12,7 +12,7 @@ import (
 var (
 	buffer    = 100
 	messages  chan string
-	workers             = 5
+	workers             = 15
 	isStarted           = false
 	output    io.Writer = os.Stdout // Change type to io.Writer
 	errors              = make(chan error)
