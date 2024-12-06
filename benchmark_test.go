@@ -7,9 +7,9 @@ import (
 	"testing"
 )
 
-func BenchmarkFmtPrintf(b *testing.B) {
-	b.ResetTimer()
+const benchmarkWorkers = 30
 
+func BenchmarkFmtPrintf(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		fmt.Fprintf(io.Discard, "Processing item %d\n", i)
 	}
@@ -22,10 +22,10 @@ func BenchmarkLoggerPrint(b *testing.B) {
 	defer Stop()
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
 		Print(fmt.Sprintf("Processing item %d", i))
 	}
+	b.StopTimer()
 }
 
 func BenchmarkLoggerDebug(b *testing.B) {
@@ -35,10 +35,10 @@ func BenchmarkLoggerDebug(b *testing.B) {
 	defer Stop()
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
 		Debug(fmt.Sprintf("Processing item %d", i))
 	}
+	b.StopTimer()
 }
 
 func BenchmarkConcurrentPrint(b *testing.B) {
@@ -85,6 +85,50 @@ func BenchmarkConcurrentPrint(b *testing.B) {
 	}
 }
 
+func BenchmarkConcurrentPrintMoreWorkers(b *testing.B) {
+	SetOutput(io.Discard)
+	StartWithWorkers(benchmarkWorkers)
+	defer Stop()
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		var wg sync.WaitGroup
+		numWorkers := 10
+
+		// Launch workers
+		for w := 0; w < numWorkers; w++ {
+			wg.Add(1)
+			go func(workerID int) {
+				defer wg.Done()
+
+				// Simulate CPU work
+				matrix := make([][]int, 50)
+				for i := range matrix {
+					matrix[i] = make([]int, 50)
+					for j := range matrix[i] {
+						matrix[i][j] = i * j
+					}
+				}
+
+				// Mix logging with computation
+				sum := 0
+				for i := range matrix {
+					for j := range matrix[i] {
+						sum += matrix[i][j]
+					}
+
+					if i%10 == 0 {
+						Print(fmt.Sprintf("Worker %d processed row %d: sum=%d",
+							workerID, i, sum))
+					}
+				}
+			}(w)
+		}
+		wg.Wait()
+	}
+	b.StopTimer()
+}
 func BenchmarkConcurrentDebug(b *testing.B) {
 	SetOutput(io.Discard)
 	Start()
@@ -129,9 +173,53 @@ func BenchmarkConcurrentDebug(b *testing.B) {
 	}
 }
 
-func BenchmarkConcurrentFmtPrintf(b *testing.B) {
+func BenchmarkConcurrentDebugMoreWorkers(b *testing.B) {
+	SetOutput(io.Discard)
+	StartWithWorkers(benchmarkWorkers)
+	defer Stop()
+
 	b.ResetTimer()
 
+	for i := 0; i < b.N; i++ {
+		var wg sync.WaitGroup
+		numWorkers := 10
+
+		// Launch workers
+		for w := 0; w < numWorkers; w++ {
+			wg.Add(1)
+			go func(workerID int) {
+				defer wg.Done()
+
+				// Simulate CPU work
+				matrix := make([][]int, 50)
+				for i := range matrix {
+					matrix[i] = make([]int, 50)
+					for j := range matrix[i] {
+						matrix[i][j] = i * j
+					}
+				}
+
+				// Mix logging with computation
+				sum := 0
+				for i := range matrix {
+					for j := range matrix[i] {
+						sum += matrix[i][j]
+					}
+
+					if i%10 == 0 {
+						Debug(fmt.Sprintf("Worker %d processed row %d: sum=%d",
+							workerID, i, sum))
+					}
+				}
+			}(w)
+		}
+		wg.Wait()
+	}
+
+	b.StopTimer()
+}
+
+func BenchmarkConcurrentFmtPrintf(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 		numWorkers := 10
