@@ -2,6 +2,7 @@ package gologger
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestConcurrentLogging(t *testing.T) {
+	SetOutput(io.Discard)
 	Start()
 	defer Stop()
 
@@ -44,6 +46,7 @@ func TestConcurrentLogging(t *testing.T) {
 	}
 }
 func TestLoggerUnderLoad(t *testing.T) {
+	SetOutput(io.Discard)
 	Start()
 	defer Stop()
 
@@ -89,6 +92,7 @@ func TestLoggerUnderLoad(t *testing.T) {
 }
 
 func TestLoggerUnderExtremeLoad(t *testing.T) {
+	SetOutput(io.Discard)
 	Start()
 	defer Stop()
 
