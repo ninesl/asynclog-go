@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-const benchmarkWorkers = 30
+const benchmarkWorkers = 50
 
 func BenchmarkFmtPrintf(b *testing.B) {
 	for i := 0; i < b.N; i++ {
