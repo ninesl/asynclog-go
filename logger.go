@@ -71,6 +71,7 @@ var (
 // DebugInfo represents debugging information that includes the file name, line number, and a string message.
 // This struct is used to store and convey detailed debugging information within the logging system.
 type DebugInfo struct {
+	pc   uintptr
 	file string
 	line int
 	str  string
@@ -145,6 +146,7 @@ func debugInfo() *DebugInfo {
 	// Cache miss - compute and store
 	_, file = filepath.Split(file)
 	info := &DebugInfo{
+		pc:   pc,
 		file: file,
 		line: line,
 	}
@@ -289,27 +291,31 @@ func consumeMessages() {
 	}
 }
 
-// // SetHere sets the string message to be used by the Here() function.
-// //
-// // If the logger is already started, this function does nothing.
-// func SetHere(msg string) {
-// 	if isStarted {
-// 		return
-// 	}
-// 	here = msg
-// }
+// SetHere sets the string message to be used by the Here() function.
+//
+// If the logger is already started, this function does nothing.
+func SetHere(msg string) {
+	if isStarted {
+		return
+	}
+	here = msg
+}
 
-// var (
-// 	here = "Here"
-// 	heres = make(map[string]*DebugInfo)
-// )
+var (
+	here = "Here"
+)
 
-// // Here is a convenience function that calls Debug() with the string "Here".
-// func Here() {
-// 	if !isStarted {
-// 		return
-// 	}
-// 	here := debugInfo()
-// 	if here != nil {
+func Here() {
+	if !isStarted {
+		return
+	}
+	messages <- here
+}
 
-// }
+// Here is a convenience function that calls Debug() with the string "Here".
+func DebugHere() {
+	if !isStarted {
+		return
+	}
+	Debug(here)
+}
