@@ -11,12 +11,6 @@ import (
 	gologger "github.com/ninesl/go-debug-logger"
 )
 
-const (
-	gologgerWorkers   = 15
-	gologgerBenchmark = 50
-	benchmarkWorkers  = 50
-)
-
 func BenchmarkFmtPrintf(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		fmt.Fprintf(io.Discard, "Processing item %d\n", i)
@@ -47,6 +41,12 @@ func BenchmarkLoggerDebug(b *testing.B) {
 	b.StopTimer()
 }
 
+const (
+	gologgerWorkers  = 15
+	gologgerBuffer   = 500
+	benchmarkWorkers = 50
+)
+
 // conncurrent logging benchmarks
 func BenchmarkConcurrentFmtPrintln(b *testing.B) {
 	sum := 0
@@ -62,7 +62,8 @@ func BenchmarkConcurrentFmtPrintln(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						fmt.Println("Processing item ", i, " sum: ", sum)
 					}
@@ -86,7 +87,8 @@ func BenchmarkConcurrentFmtPrintf(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						fmt.Printf("Processing item %d sum %d\n", i, sum)
 					}
@@ -110,7 +112,8 @@ func BenchmarkConcurrentFmtFprintf(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						fmt.Fprintf(io.Discard, "Processing item %d sum %d\n", i, sum)
 					}
@@ -122,8 +125,8 @@ func BenchmarkConcurrentFmtFprintf(b *testing.B) {
 }
 func BenchmarkConcurrentDebug(b *testing.B) {
 	// gologger.SetOutput(io.Discard)
-	gologger.SetBuffer(gologgerWorkers)
-	gologger.SetWorkers(benchmarkWorkers)
+	gologger.SetBuffer(gologgerBuffer)
+	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -142,7 +145,8 @@ func BenchmarkConcurrentDebug(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						gologger.Debug("Processing item " + strconv.Itoa(i) + " sum " + strconv.Itoa(sum))
 					}
@@ -154,8 +158,8 @@ func BenchmarkConcurrentDebug(b *testing.B) {
 }
 func BenchmarkConcurrentPrint(b *testing.B) {
 	// gologger.SetOutput(io.Discard)
-	gologger.SetBuffer(gologgerWorkers)
-	gologger.SetWorkers(benchmarkWorkers)
+	gologger.SetBuffer(gologgerBuffer)
+	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -174,7 +178,8 @@ func BenchmarkConcurrentPrint(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						gologger.Print("Processing item " + strconv.Itoa(i) + " sum " + strconv.Itoa(sum))
 					}
@@ -186,8 +191,8 @@ func BenchmarkConcurrentPrint(b *testing.B) {
 }
 func BenchmarkConcurrentPrintArgs(b *testing.B) {
 	// gologger.SetOutput(io.Discard)
-	gologger.SetBuffer(gologgerWorkers)
-	gologger.SetWorkers(benchmarkWorkers)
+	gologger.SetBuffer(gologgerBuffer)
+	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -206,7 +211,8 @@ func BenchmarkConcurrentPrintArgs(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						gologger.PrintArgs("Processing item ", i, " sum: ", sum)
 					}
@@ -232,7 +238,8 @@ func BenchmarkConcurrentFmtPrintlnSingle(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						fmt.Println("Here")
 					}
@@ -256,7 +263,8 @@ func BenchmarkConcurrentFmtPrintfSingle(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						fmt.Printf("Here")
 					}
@@ -280,7 +288,8 @@ func BenchmarkConcurrentFmtFprintfSingle(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						fmt.Fprintf(os.Stdout, "Here")
 					}
@@ -293,8 +302,8 @@ func BenchmarkConcurrentFmtFprintfSingle(b *testing.B) {
 
 func BenchmarkConcurrentDebugSingle(b *testing.B) {
 	// gologger.SetOutput(io.Discard)
-	gologger.SetBuffer(gologgerWorkers)
-	gologger.SetWorkers(benchmarkWorkers)
+	gologger.SetBuffer(gologgerBuffer)
+	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -313,7 +322,8 @@ func BenchmarkConcurrentDebugSingle(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						gologger.Debug("Here")
 					}
@@ -326,8 +336,8 @@ func BenchmarkConcurrentDebugSingle(b *testing.B) {
 
 func BenchmarkConcurrentHere(b *testing.B) {
 	// gologger.SetOutput(io.Discard)
-	gologger.SetBuffer(gologgerWorkers)
-	gologger.SetWorkers(benchmarkWorkers)
+	gologger.SetBuffer(gologgerBuffer)
+	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -346,7 +356,42 @@ func BenchmarkConcurrentHere(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
+
+						gologger.Here()
+					}
+				}
+			}(w)
+		}
+		wg.Wait()
+	}
+}
+
+func BenchmarkConcurrentDebugHere(b *testing.B) {
+	// gologger.SetOutput(io.Discard)
+	gologger.SetBuffer(gologgerBuffer)
+	gologger.SetWorkers(gologgerWorkers)
+	gologger.Start()
+	defer gologger.Stop()
+
+	b.ResetTimer()
+
+	sum := 0
+	for i := 0; i < b.N; i++ {
+		var wg sync.WaitGroup
+
+		for w := 0; w < benchmarkWorkers; w++ {
+			wg.Add(1)
+			go func(workerID int) {
+				defer wg.Done()
+
+				// Simulate CPU work
+				matrix := make([][]struct{}, i)
+				for x := range matrix {
+					for j := range matrix[x] {
+						sum += workerID * x
+						sum *= j
 
 						gologger.Here()
 					}
@@ -359,8 +404,8 @@ func BenchmarkConcurrentHere(b *testing.B) {
 
 func BenchmarkConcurrentPrintSingle(b *testing.B) {
 	// gologger.SetOutput(io.Discard)
-	gologger.SetBuffer(gologgerWorkers)
-	gologger.SetWorkers(benchmarkWorkers)
+	gologger.SetBuffer(gologgerBuffer)
+	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -379,7 +424,8 @@ func BenchmarkConcurrentPrintSingle(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						gologger.Print("Here")
 					}
@@ -392,8 +438,8 @@ func BenchmarkConcurrentPrintSingle(b *testing.B) {
 
 func BenchmarkConcurrentPrintArgsSingle(b *testing.B) {
 	// gologger.SetOutput(io.Discard)
-	gologger.SetBuffer(gologgerWorkers)
-	gologger.SetWorkers(benchmarkWorkers)
+	gologger.SetBuffer(gologgerBuffer)
+	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -412,7 +458,8 @@ func BenchmarkConcurrentPrintArgsSingle(b *testing.B) {
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
 					for j := range matrix[x] {
-						sum += x * j
+						sum += workerID * x
+						sum *= j
 
 						gologger.PrintArgs("Here")
 					}
