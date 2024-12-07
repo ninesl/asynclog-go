@@ -4,18 +4,54 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
-	"strings"
+	"sync"
 )
 
 var (
-	buffer    = 100
-	messages  chan string
-	workers             = 15
-	isStarted           = false
-	output    io.Writer = os.Stdout // Change type to io.Writer
-	errors              = make(chan error)
+	buffer     = 100
+	messages   chan string
+	workers              = 15
+	isStarted            = false
+	output     io.Writer = os.Stdout // Change type to io.Writer
+	debugCache sync.Map
 )
+
+type debugInfo struct {
+	file string
+	line int
+	str  string
+}
+
+func (info *debugInfo) String() string {
+	if info.str == "" {
+		info.str = fmt.Sprintf("%s:%d", info.file, info.line)
+	}
+	return info.str
+}
+
+// Returns the file and line number of the caller.
+// Uses the cache to avoid recomputing the same info.
+func getDebugInfo() *debugInfo {
+	pc, file, line, ok := runtime.Caller(2)
+	if !ok {
+		return nil
+	}
+
+	if cached, ok := debugCache.Load(pc); ok {
+		return cached.(*debugInfo)
+	}
+
+	// Cache miss - compute and store
+	_, file = filepath.Split(file)
+	info := &debugInfo{
+		file: file,
+		line: line,
+	}
+	debugCache.Store(pc, info)
+	return info
+}
 
 // Takes an io.Writer to redirect logs to a file or other destination.
 //
@@ -42,6 +78,7 @@ func Start() {
 		return
 	}
 	messages = make(chan string, buffer)
+	debugCache = sync.Map{}
 	isStarted = true
 	for i := 0; i < workers; i++ {
 		go consumeMessages()
@@ -94,11 +131,9 @@ func Debug(msg string) {
 	if !isStarted {
 		return
 	}
-	_, file, line, ok := runtime.Caller(1)
-	if ok {
-		fParts := strings.Split(file, "/")
-		fileStr := fParts[len(fParts)-2] + "/" + fParts[len(fParts)-1]
-		msg = fmt.Sprintf("%s:%d %s", fileStr, line, msg)
+	info := getDebugInfo()
+	if info != nil {
+		msg = info.String() + " " + msg
 	} else {
 		msg = "ISSUE DETERMINING RUNTIME CALLER: " + msg
 	}
