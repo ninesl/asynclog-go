@@ -1,4 +1,4 @@
-package gologger_test
+package asynclog_test
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	gologger "github.com/ninesl/go-debug-logger"
+	asynclog "github.com/ninesl/asynclog-go"
 )
 
 func BenchmarkFmtPrintf(b *testing.B) {
@@ -19,30 +19,30 @@ func BenchmarkFmtPrintf(b *testing.B) {
 }
 
 func BenchmarkLoggerPrint(b *testing.B) {
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		gologger.Print("Processing item " + strconv.Itoa(i))
+		asynclog.Print("Processing item " + strconv.Itoa(i))
 	}
 	b.StopTimer()
 }
 
 func BenchmarkLoggerDebug(b *testing.B) {
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		gologger.Debug("Processing item " + strconv.Itoa(i))
+		asynclog.Debug("Processing item " + strconv.Itoa(i))
 	}
 	b.StopTimer()
 }
 
 const (
-	gologgerWorkers  = 15
-	gologgerBuffer   = 500
+	asynclogWorkers  = 15
+	asynclogBuffer   = 500
 	benchmarkWorkers = 50
 )
 
@@ -117,10 +117,10 @@ func BenchmarkConcurrentFmtFprintf(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentDebug(b *testing.B) {
-	gologger.SetBuffer(gologgerBuffer)
-	gologger.SetWorkers(gologgerWorkers)
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.SetBuffer(asynclogBuffer)
+	asynclog.SetWorkers(asynclogWorkers)
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 
@@ -138,7 +138,7 @@ func BenchmarkConcurrentDebug(b *testing.B) {
 					for range matrix[x] {
 						time.Sleep(time.Nanosecond)
 
-						gologger.Debug("Processing item " + strconv.Itoa(i) + " worker " + strconv.Itoa(workerID))
+						asynclog.Debug("Processing item " + strconv.Itoa(i) + " worker " + strconv.Itoa(workerID))
 					}
 				}
 			}(w)
@@ -147,10 +147,10 @@ func BenchmarkConcurrentDebug(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentPrint(b *testing.B) {
-	gologger.SetBuffer(gologgerBuffer)
-	gologger.SetWorkers(gologgerWorkers)
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.SetBuffer(asynclogBuffer)
+	asynclog.SetWorkers(asynclogWorkers)
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 
@@ -168,7 +168,7 @@ func BenchmarkConcurrentPrint(b *testing.B) {
 					for range matrix[x] {
 						time.Sleep(time.Nanosecond)
 
-						gologger.Print("Processing item " + strconv.Itoa(i) + " worker " + strconv.Itoa(workerID))
+						asynclog.Print("Processing item " + strconv.Itoa(i) + " worker " + strconv.Itoa(workerID))
 					}
 				}
 			}(w)
@@ -177,10 +177,10 @@ func BenchmarkConcurrentPrint(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentPrintArgs(b *testing.B) {
-	gologger.SetBuffer(gologgerBuffer)
-	gologger.SetWorkers(gologgerWorkers)
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.SetBuffer(asynclogBuffer)
+	asynclog.SetWorkers(asynclogWorkers)
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 
@@ -198,7 +198,7 @@ func BenchmarkConcurrentPrintArgs(b *testing.B) {
 					for range matrix[x] {
 						time.Sleep(time.Nanosecond)
 
-						gologger.PrintArgs("Processing item ", i, " worker ", workerID)
+						asynclog.PrintArgs("Processing item ", i, " worker ", workerID)
 					}
 				}
 			}(w)
@@ -279,10 +279,10 @@ func BenchmarkConcurrentFmtFprintfSingle(b *testing.B) {
 }
 
 func BenchmarkConcurrentDebugSingle(b *testing.B) {
-	gologger.SetBuffer(gologgerBuffer)
-	gologger.SetWorkers(gologgerWorkers)
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.SetBuffer(asynclogBuffer)
+	asynclog.SetWorkers(asynclogWorkers)
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 
@@ -300,7 +300,7 @@ func BenchmarkConcurrentDebugSingle(b *testing.B) {
 					for range matrix[x] {
 						time.Sleep(time.Nanosecond)
 
-						gologger.Debug("Here")
+						asynclog.Debug("Here")
 					}
 				}
 			}(w)
@@ -310,10 +310,10 @@ func BenchmarkConcurrentDebugSingle(b *testing.B) {
 }
 
 func BenchmarkConcurrentHere(b *testing.B) {
-	gologger.SetBuffer(gologgerBuffer)
-	gologger.SetWorkers(gologgerWorkers)
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.SetBuffer(asynclogBuffer)
+	asynclog.SetWorkers(asynclogWorkers)
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 
@@ -331,7 +331,7 @@ func BenchmarkConcurrentHere(b *testing.B) {
 					for range matrix[x] {
 						time.Sleep(time.Nanosecond)
 
-						gologger.Here()
+						asynclog.Here()
 					}
 				}
 			}(w)
@@ -341,10 +341,10 @@ func BenchmarkConcurrentHere(b *testing.B) {
 }
 
 func BenchmarkConcurrentDebugHere(b *testing.B) {
-	gologger.SetBuffer(gologgerBuffer)
-	gologger.SetWorkers(gologgerWorkers)
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.SetBuffer(asynclogBuffer)
+	asynclog.SetWorkers(asynclogWorkers)
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 
@@ -362,7 +362,7 @@ func BenchmarkConcurrentDebugHere(b *testing.B) {
 					for range matrix[x] {
 						time.Sleep(time.Nanosecond)
 
-						gologger.Here()
+						asynclog.Here()
 					}
 				}
 			}(w)
@@ -372,10 +372,10 @@ func BenchmarkConcurrentDebugHere(b *testing.B) {
 }
 
 func BenchmarkConcurrentPrintSingle(b *testing.B) {
-	gologger.SetBuffer(gologgerBuffer)
-	gologger.SetWorkers(gologgerWorkers)
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.SetBuffer(asynclogBuffer)
+	asynclog.SetWorkers(asynclogWorkers)
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 
@@ -393,7 +393,7 @@ func BenchmarkConcurrentPrintSingle(b *testing.B) {
 					for range matrix[x] {
 						time.Sleep(time.Nanosecond)
 
-						gologger.Print("Here")
+						asynclog.Print("Here")
 					}
 				}
 			}(w)
@@ -403,10 +403,10 @@ func BenchmarkConcurrentPrintSingle(b *testing.B) {
 }
 
 func BenchmarkConcurrentPrintArgsSingle(b *testing.B) {
-	gologger.SetBuffer(gologgerBuffer)
-	gologger.SetWorkers(gologgerWorkers)
-	gologger.Start()
-	defer gologger.Stop()
+	asynclog.SetBuffer(asynclogBuffer)
+	asynclog.SetWorkers(asynclogWorkers)
+	asynclog.Start()
+	defer asynclog.Stop()
 
 	b.ResetTimer()
 
@@ -424,7 +424,7 @@ func BenchmarkConcurrentPrintArgsSingle(b *testing.B) {
 					for range matrix[x] {
 						time.Sleep(time.Nanosecond)
 
-						gologger.PrintArgs("Here")
+						asynclog.PrintArgs("Here")
 					}
 				}
 			}(w)

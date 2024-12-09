@@ -1,3 +1,3 @@
-module github.com/ninesl/go-debug-logger
+module github.com/ninesl/asynclog-go
 
 go 1.23.4

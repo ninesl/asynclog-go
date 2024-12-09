@@ -1,4 +1,4 @@
-// Package gologger provides a simple logging mechanism with support for
+// asynclog provides a simple logging mechanism with support for
 // concurrent message processing, custom output destinations, and debugging
 // information in the format of "pkg/filename.go:line"
 //
@@ -9,44 +9,42 @@
 // Usage:
 //
 //	// Configuration (optional):
-//	   gologger.SetBuffer(b int) // 100 by default
-//	   gologger.SetWorkers(w int) // 15 by default
-//	   gologger.SetOutput(io.Writer) // os.Stdout by default
+//	   asynclog.SetBuffer(b int)     // 100 by default
+//	   asynclog.SetWorkers(w int)    // 15 by default
+//	   asynclog.SetOutput(io.Writer) // os.Stdout by default
 //
 //	// Start the logger:
-//	   gologger.Start()
+//	   asynclog.Start()
 //
 //	// Send messages to your logger:
-//	   gologger.Print(msg string)
-//	   gologger.Debug(msg string) // includes file and line number
+//	   asynclog.Print(msg string)
+//	   asynclog.Debug(msg string) // includes file and line number
 //
 //	// Stop the logger to ensure all messages are consumed before the program exits:
-//	   gologger.Stop() // defer after Start()
+//	   asynclog.Stop() // defer after Start()
 //
 // Example:
 //
 //	// Setting up the logger
 //
-//		gologger.SetOutput(w io.Writer)
-//		gologger.SetBuffer(b int)
-//		gologger.SetWorkers(w int)
+//		asynclog.SetOutput(w io.Writer)
+//		asynclog.SetBuffer(b int)
+//		asynclog.SetWorkers(w int)
 //		func SetWorkers(w int)
-//		gologger.Start()
-//		defer gologger.Stop()
+//		asynclog.Start()
+//		defer asynclog.Stop()
 //
 //	//some work while calling these thread safe logging functions:
-//		gologger.Print(s string)
-//		gologger.Debug(s string)
+//		asynclog.Print(s string)
+//		asynclog.Debug(s string)
 //
 // The logger is safe for concurrent use. In fact, that is why you would want to use this package.
-// There is no significant performance overhead for using the logger in .
 //
 // Configuring the logger can help you avoid I/O overhead.
 //
-//		There is no significant speed up in benchmarks when
-//	 compared to regular fmt.Printf() calls EXCEPT in the cases
-//	 where the logger is used in large numbers of concurrent goroutines.
-package gologger
+// There is no significant speed up in benchmarks when compared to regular fmt.Printf() calls
+// EXCEPT in cases where the logger is used in large numbers of concurrent goroutines.
+package asynclog
 
 import (
 	"bufio"
@@ -162,15 +160,15 @@ func debugInfo() *DebugInfo {
 //
 // Example:
 //
-//	gologger.SetOutput(w io.Writer)
-//	gologger.SetBuffer(b int)
+//	asynclog.SetOutput(w io.Writer)
+//	asynclog.SetBuffer(b int)
 //	func SetWorkers(w int)
-//	gologger.Start()
-//	defer gologger.Stop()
+//	asynclog.Start()
+//	defer asynclog.Stop()
 //
 //	//some work while calling these thread safe logging functions:
-//	gologger.Print(s string)
-//	gologger.Debug(s string)
+//	asynclog.Print(s string)
+//	asynclog.Debug(s string)
 func Start() {
 	if isStarted {
 		return
@@ -290,15 +288,14 @@ var builderPool = sync.Pool{
 	},
 }
 
-// TODO: more improvements
+// TODO: improvements
 func consumeMessages() {
 	const (
 		batchSize     = 256       // Larger batches for better throughput
-		bufferSize    = 1024 * 64 // 64KB buffer for modern systems
+		bufferSize    = 1024 * 64 // 64KB buffer
 		flushInterval = 500 * time.Millisecond
 	)
 
-	// Pre-allocate buffer
 	buf := make([]byte, 0, bufferSize)
 	w := bufio.NewWriterSize(output, bufferSize)
 	defer w.Flush()
@@ -310,7 +307,6 @@ func consumeMessages() {
 		select {
 		case msg, ok := <-messages:
 			if !ok {
-				// Channel closed - flush remaining and exit
 				if len(buf) > 0 {
 					w.Write(buf)
 					w.Flush()
@@ -318,11 +314,9 @@ func consumeMessages() {
 				return
 			}
 
-			// Append message and newline
 			buf = append(buf, msg...)
 			buf = append(buf, '\n')
 
-			// Flush if buffer is getting full
 			if len(buf) >= batchSize {
 				w.Write(buf)
 				w.Flush()
@@ -331,7 +325,6 @@ func consumeMessages() {
 			}
 
 		case <-timer.C:
-			// Periodic flush
 			if len(buf) > 0 {
 				w.Write(buf)
 				w.Flush()

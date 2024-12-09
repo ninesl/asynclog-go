@@ -1,17 +1,17 @@
-# go-debug-logger
+# asynclog
 
 A lightweight, concurrent logging package for Go applications with support for debugging line information.
 
-NOTE: Because of the overhead of the package, `fmt.Println()` on its own IS faster than using `gologger`.
+NOTE: Because of the overhead of the package, `fmt.Println()` on its own IS faster than using `asynclog` in most single-threaded Go programs.
 
 However, in applications with various goroutines and asynchronous operations, this package shines as `fmt.Println()` can be blocking at scale.
 
 I personally use this package to easily manage debugging my codebases with lots of concurrency, think webscrapers, etc.
 
 ## Configuration
-- Number of workers (default: 15, configurable via `SetWorkers(w int)`)
-- Output destination (default: os.Stdout, configurable via `SetOutput(w io.Writer)`)
-- Buffer size (default: 100 messages, configurable via `SetBuffer(b int)`) 
+- Number of workers, default: 15, configurable via `SetWorkers(w int)`
+- Output destination, default: os.Stdout, configurable via `SetOutput(w io.Writer)`
+- Buffer size, default: 100 messages, configurable via `SetBuffer(b int)`
 
 In heavier logging workloads, increasing the worker count or message buffer size can be more performant.
 
@@ -20,7 +20,7 @@ In heavier logging workloads, increasing the worker count or message buffer size
 - Concurrent message processing
 - Debug output with file/line information
 - Custom output streams
-- Help() quick logging function
+- `Help()` quick logging function
 
 ## Planned
 - more configuration
@@ -32,7 +32,7 @@ In heavier logging workloads, increasing the worker count or message buffer size
 
 ## Installation
 ```go
-go get github.com/ninesl/go-debug-logger
+go get github.com/ninesl/asynclog-go
 ```
 
 ## Quick Start
@@ -40,28 +40,28 @@ go get github.com/ninesl/go-debug-logger
 package main
 
 import (
-    "github.com/ninesl/go-debug-logger"
+    "github.com/ninesl/asynclog-go"
 )
 
 func main() {
     // Start logger
-    gologger.Start()
-    defer gologger.Stop()
+    asynclog.Start()
+    defer asynclog.Stop()
 
     // Basic logging
-    gologger.Print("Application started")
+    asynclog.Print("Application started")
     
     // Debug logging. Output is "file.go:line# Processing request"
-    gologger.Debug("Processing request")
+    asynclog.Debug("Processing request")
 
     // Easy concatenation. Tip: This is a slow function and should only be used to quickly
-    gologger.PrintArgs("Processing request ", someVariable)
+    asynclog.PrintArgs("Processing request ", someVariable)
 
     // Prints "Here" to the console.
-    gologger.Here()
+    asynclog.Here()
 
     // Prints "file.go:line# Here" to the console.
-    gologger.DebugHere()
+    asynclog.DebugHere()
 }
 ```
 
@@ -74,17 +74,17 @@ The logger is designed for concurrent environments such as:
 ```go
 func worker(id int) {
     for i := 0; i < 1000; i++ {
-        gologger.Print("Processing item " + strconv.Itoa(i))
+        asynclog.Print("Processing item " + strconv.Itoa(i))
         
         if err := fooBar(); err != nil {
-            gologger.Debug("encountered an error during fooBar()")
+            asynclog.Debug("encountered an error during fooBar()")
         }
     }
 }
 
 func main() {
-    gologger.Start()
-    defer gologger.Stop()
+    asynclog.Start()
+    defer asynclog.Stop()
 
     var wg sync.WaitGroup
     for i := 0; i < 10; i++ {
@@ -100,31 +100,35 @@ func main() {
 
 ## Benchmarks
 
-`make benchmark` or `make benchmark COUNT={num}` simulates a concurrent environment to test `fmt.Println(msg)` vs `gologger.Print(msg)` 
 
-Results on my machine (AMD Ryzen 5 3600X 6-Core Processor) after running `make benchmark`:
+You can run benchmarks using the following commands:
+- `make benchmark` 
+- `make benchmark COUNT={num}` (to specify the number of iterations)
+
+These benchmarks simulate a concurrent environment to test `fmt.Println(msg)` vs `asynclog.Print(msg)`.
+
 
 ```bash        
 # work being 'done' is time.Sleep(time.Nanosecond) to keep operations consistent
 # each print is "processed item X worker X"
-fmt.Println(): baseline
-fmt.Printf():  -0.08% slower
-fmt.Fprintf(): +0.05% faster
-Debug():       +4.60% faster
-Print():       +2.90% faster
-PrintArgs():   -4.82% slower
+fmt.Println():          baseline
+fmt.Printf():           -0.08% slower
+fmt.Fprintf():          +0.05% faster
+asynclog.Debug():       +4.60% faster
+asynclog.Print():       +2.90% faster
+asynclog.PrintArgs():   -4.82% slower
 # each print is "Here"
-fmt.Println(): baseline
-fmt.Printf():  -3.26% slower
-fmt.Fprintf(): -2.80% slower
-Debug():       +6.89% faster
-Print():       +4.12% faster
-PrintArgs():   +1.23% faster
-Here():        +5.59% faster
-DebugHere():   +4.62% faster
+fmt.Println():          baseline
+fmt.Printf():           -3.26% slower
+fmt.Fprintf():          -2.80% slower
+asynclog.Debug():       +6.89% faster
+asynclog.Print():       +4.12% faster
+asynclog.PrintArgs():   +1.23% faster
+asynclog.Here():        +5.59% faster
+asynclog.DebugHere():   +4.62% faster
 ```
 - Concurrent workloads: Logger performs same to better due to worker pool design
-- Line numbers: `Debug()` gives runtime filename and line number information with no slowdowns.
+- `Debug()` gives runtime filename and line number information with no slowdowns.
 
 In conclusion, there can be slight improvement to the performance when using `Debug()` and `Print()`,
  but depending on the workload of your go routines this package may be slightly overkill.
@@ -135,7 +139,7 @@ In conclusion, there can be slight improvement to the performance when using `De
 However, being able to easily print to the console any message and the file/line number it came from with virtually 
  no cost is a big win when it comes to my style of debugging.
 
-I believe that the overhead tradeoff is negligible from the information and speedup gained from `Debug()` and `Print()`.
+I believe that the tradeoff in overhead is negligible from the information and speedup gained from `Debug()` and `Print()`.
 
 ## Quick Debugging with Here() and DebugHere()
 
@@ -146,8 +150,8 @@ The package provides two convenient debugging functions:
 
 You can customize the message:
 ```go
-gologger.SetHere("checkpoint") // Must be called before Start()
-gologger.Here() // Output: checkpoint
+asynclog.SetHere("checkpoint") // Must be called before Start()
+asynclog.Here() // Output: checkpoint
 ```
 
 ### `DebugHere()`
@@ -162,18 +166,18 @@ import (
 )
 
 func doSomeWork() {
-    gologger.Start()
-    defer gologger.Stop()
+    asynclog.Start()
+    defer asynclog.Stop()
     
-    gologger.DebugHere() // Output: main.go:11 Here
+    asynclog.DebugHere() // Output: main.go:11 Here
     foo()
-    gologger.DebugHere() // Output: main.go:13 Here
+    asynclog.DebugHere() // Output: main.go:13 Here
     
     if err := bar(); err != nil {
-        gologger.Debug(err.Error()) // Output: main.go:16 "error message"
+        asynclog.Debug(err.Error()) // Output: main.go:16 "error message"
     }
 }
 ```
 
-Like `Print()` and `Debug()` both functions are thread-safe and can be used in concurrent code with minimal overhead.
+Like `Print()` and `Debug()`, both functions are thread-safe and can be used in concurrent code with minimal overhead.
 
