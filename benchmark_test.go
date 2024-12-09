@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	gologger "github.com/ninesl/go-debug-logger"
 )
@@ -47,7 +48,6 @@ const (
 
 // conncurrent logging benchmarks
 func BenchmarkConcurrentFmtPrintln(b *testing.B) {
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -59,11 +59,10 @@ func BenchmarkConcurrentFmtPrintln(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
-						fmt.Println("Processing item ", i, " sum: ", sum)
+						fmt.Println("Processing item ", i, " worker ", workerID)
 					}
 				}
 			}(w)
@@ -72,7 +71,6 @@ func BenchmarkConcurrentFmtPrintln(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentFmtPrintf(b *testing.B) {
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -84,11 +82,10 @@ func BenchmarkConcurrentFmtPrintf(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
-						fmt.Printf("Processing item %d sum %d\n", i, sum)
+						fmt.Printf("Processing item %d worker %d\n", i, workerID)
 					}
 				}
 			}(w)
@@ -97,7 +94,6 @@ func BenchmarkConcurrentFmtPrintf(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentFmtFprintf(b *testing.B) {
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -109,11 +105,10 @@ func BenchmarkConcurrentFmtFprintf(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
-						fmt.Fprintf(os.Stdout, "Processing item %d sum %d\n", i, sum)
+						fmt.Fprintf(os.Stdout, "Processing item %d worker %d\n", i, workerID)
 					}
 				}
 			}(w)
@@ -129,7 +124,6 @@ func BenchmarkConcurrentDebug(b *testing.B) {
 
 	b.ResetTimer()
 
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -141,11 +135,10 @@ func BenchmarkConcurrentDebug(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
-						gologger.Debug("Processing item " + strconv.Itoa(i) + " sum " + strconv.Itoa(sum))
+						gologger.Debug("Processing item " + strconv.Itoa(i) + " worker " + strconv.Itoa(workerID))
 					}
 				}
 			}(w)
@@ -161,7 +154,6 @@ func BenchmarkConcurrentPrint(b *testing.B) {
 
 	b.ResetTimer()
 
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -173,11 +165,10 @@ func BenchmarkConcurrentPrint(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
-						gologger.Print("Processing item " + strconv.Itoa(i) + " sum " + strconv.Itoa(sum))
+						gologger.Print("Processing item " + strconv.Itoa(i) + " worker " + strconv.Itoa(workerID))
 					}
 				}
 			}(w)
@@ -193,7 +184,6 @@ func BenchmarkConcurrentPrintArgs(b *testing.B) {
 
 	b.ResetTimer()
 
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -205,11 +195,10 @@ func BenchmarkConcurrentPrintArgs(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
-						gologger.PrintArgs("Processing item ", i, " sum: ", sum)
+						gologger.PrintArgs("Processing item ", i, " worker ", workerID)
 					}
 				}
 			}(w)
@@ -220,7 +209,6 @@ func BenchmarkConcurrentPrintArgs(b *testing.B) {
 
 // Single message benchmarks
 func BenchmarkConcurrentFmtPrintlnSingle(b *testing.B) {
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -232,9 +220,8 @@ func BenchmarkConcurrentFmtPrintlnSingle(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
 						fmt.Println("Here")
 					}
@@ -245,7 +232,6 @@ func BenchmarkConcurrentFmtPrintlnSingle(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentFmtPrintfSingle(b *testing.B) {
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -257,9 +243,8 @@ func BenchmarkConcurrentFmtPrintfSingle(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
 						fmt.Printf("Here")
 					}
@@ -270,7 +255,6 @@ func BenchmarkConcurrentFmtPrintfSingle(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentFmtFprintfSingle(b *testing.B) {
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -282,9 +266,8 @@ func BenchmarkConcurrentFmtFprintfSingle(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
 						fmt.Fprintf(os.Stdout, "Here")
 					}
@@ -303,7 +286,6 @@ func BenchmarkConcurrentDebugSingle(b *testing.B) {
 
 	b.ResetTimer()
 
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -315,9 +297,8 @@ func BenchmarkConcurrentDebugSingle(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
 						gologger.Debug("Here")
 					}
@@ -336,7 +317,6 @@ func BenchmarkConcurrentHere(b *testing.B) {
 
 	b.ResetTimer()
 
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -348,9 +328,8 @@ func BenchmarkConcurrentHere(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
 						gologger.Here()
 					}
@@ -369,7 +348,6 @@ func BenchmarkConcurrentDebugHere(b *testing.B) {
 
 	b.ResetTimer()
 
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -381,9 +359,8 @@ func BenchmarkConcurrentDebugHere(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
 						gologger.Here()
 					}
@@ -402,7 +379,6 @@ func BenchmarkConcurrentPrintSingle(b *testing.B) {
 
 	b.ResetTimer()
 
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -414,9 +390,8 @@ func BenchmarkConcurrentPrintSingle(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
 						gologger.Print("Here")
 					}
@@ -435,7 +410,6 @@ func BenchmarkConcurrentPrintArgsSingle(b *testing.B) {
 
 	b.ResetTimer()
 
-	sum := 0
 	for i := 0; i < b.N; i++ {
 		var wg sync.WaitGroup
 
@@ -447,9 +421,8 @@ func BenchmarkConcurrentPrintArgsSingle(b *testing.B) {
 				// Simulate CPU work
 				matrix := make([][]struct{}, i)
 				for x := range matrix {
-					for j := range matrix[x] {
-						sum += workerID * x
-						sum *= j
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
 
 						gologger.PrintArgs("Here")
 					}
