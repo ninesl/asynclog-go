@@ -18,7 +18,6 @@ func BenchmarkFmtPrintf(b *testing.B) {
 }
 
 func BenchmarkLoggerPrint(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -30,7 +29,6 @@ func BenchmarkLoggerPrint(b *testing.B) {
 }
 
 func BenchmarkLoggerDebug(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.Start()
 	defer gologger.Stop()
 
@@ -115,7 +113,7 @@ func BenchmarkConcurrentFmtFprintf(b *testing.B) {
 						sum += workerID * x
 						sum *= j
 
-						fmt.Fprintf(io.Discard, "Processing item %d sum %d\n", i, sum)
+						fmt.Fprintf(os.Stdout, "Processing item %d sum %d\n", i, sum)
 					}
 				}
 			}(w)
@@ -124,7 +122,6 @@ func BenchmarkConcurrentFmtFprintf(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentDebug(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.SetBuffer(gologgerBuffer)
 	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
@@ -157,7 +154,6 @@ func BenchmarkConcurrentDebug(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentPrint(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.SetBuffer(gologgerBuffer)
 	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
@@ -190,7 +186,6 @@ func BenchmarkConcurrentPrint(b *testing.B) {
 	}
 }
 func BenchmarkConcurrentPrintArgs(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.SetBuffer(gologgerBuffer)
 	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
@@ -301,7 +296,6 @@ func BenchmarkConcurrentFmtFprintfSingle(b *testing.B) {
 }
 
 func BenchmarkConcurrentDebugSingle(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.SetBuffer(gologgerBuffer)
 	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
@@ -335,7 +329,6 @@ func BenchmarkConcurrentDebugSingle(b *testing.B) {
 }
 
 func BenchmarkConcurrentHere(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.SetBuffer(gologgerBuffer)
 	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
@@ -369,7 +362,6 @@ func BenchmarkConcurrentHere(b *testing.B) {
 }
 
 func BenchmarkConcurrentDebugHere(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.SetBuffer(gologgerBuffer)
 	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
@@ -403,7 +395,6 @@ func BenchmarkConcurrentDebugHere(b *testing.B) {
 }
 
 func BenchmarkConcurrentPrintSingle(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.SetBuffer(gologgerBuffer)
 	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
@@ -437,7 +428,6 @@ func BenchmarkConcurrentPrintSingle(b *testing.B) {
 }
 
 func BenchmarkConcurrentPrintArgsSingle(b *testing.B) {
-	// gologger.SetOutput(io.Discard)
 	gologger.SetBuffer(gologgerBuffer)
 	gologger.SetWorkers(gologgerWorkers)
 	gologger.Start()
