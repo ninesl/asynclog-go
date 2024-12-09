@@ -49,6 +49,7 @@
 package gologger
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -57,6 +58,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
@@ -229,6 +231,8 @@ func Print(msg string) {
 // Parameters:
 //
 //	args ...any //A variadic parameter of strings to be concatenated and sent to the messages channel.
+//
+// This function is not faster than Print(). It is an ease of use function for concatenating multiple strings to the logger.
 func PrintArgs(args ...any) {
 	if !isStarted {
 		return
@@ -271,6 +275,7 @@ func Debug(msg string) {
 		return
 	}
 	info := debugInfo()
+
 	if info != nil {
 		msg = info.String() + " " + msg
 	} else {
@@ -279,14 +284,60 @@ func Debug(msg string) {
 	messages <- msg
 }
 
+var builderPool = sync.Pool{
+	New: func() interface{} {
+		return &strings.Builder{}
+	},
+}
+
+// TODO: more improvements
 func consumeMessages() {
-	if output == os.Stdout {
-		for msg := range messages {
-			fmt.Printf(msg + "\n") // Use configured output
-		}
-	} else {
-		for msg := range messages {
-			fmt.Fprintln(output, msg) // Use configured output
+	const (
+		batchSize     = 256       // Larger batches for better throughput
+		bufferSize    = 1024 * 64 // 64KB buffer for modern systems
+		flushInterval = 500 * time.Millisecond
+	)
+
+	// Pre-allocate buffer
+	buf := make([]byte, 0, bufferSize)
+	w := bufio.NewWriterSize(output, bufferSize)
+	defer w.Flush()
+
+	timer := time.NewTimer(flushInterval)
+	defer timer.Stop()
+
+	for {
+		select {
+		case msg, ok := <-messages:
+			if !ok {
+				// Channel closed - flush remaining and exit
+				if len(buf) > 0 {
+					w.Write(buf)
+					w.Flush()
+				}
+				return
+			}
+
+			// Append message and newline
+			buf = append(buf, msg...)
+			buf = append(buf, '\n')
+
+			// Flush if buffer is getting full
+			if len(buf) >= batchSize {
+				w.Write(buf)
+				w.Flush()
+				buf = buf[:0]
+				timer.Reset(flushInterval)
+			}
+
+		case <-timer.C:
+			// Periodic flush
+			if len(buf) > 0 {
+				w.Write(buf)
+				w.Flush()
+				buf = buf[:0]
+			}
+			timer.Reset(flushInterval)
 		}
 	}
 }
@@ -305,6 +356,7 @@ var (
 	here = "Here"
 )
 
+// Here() sends the default "Here" message to the messages channel if the logger is started.
 func Here() {
 	if !isStarted {
 		return
@@ -312,7 +364,7 @@ func Here() {
 	messages <- here
 }
 
-// Here is a convenience function that calls Debug() with the string "Here".
+// DebugHere() is a convenience function that calls Debug() with whatever is set to SetHere() default "Here".
 func DebugHere() {
 	if !isStarted {
 		return
