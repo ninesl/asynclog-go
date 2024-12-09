@@ -452,6 +452,88 @@ func BenchmarkConcurrentPrintSingle(b *testing.B) {
 	}
 }
 
+func BenchmarkConcurrentGologPrintf(b *testing.B) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		var wg sync.WaitGroup
+
+		for w := 0; w < benchmarkWorkers; w++ {
+			wg.Add(1)
+			go func(workerID int) {
+				defer wg.Done()
+
+				// Simulate CPU work
+				matrix := make([][]struct{}, i)
+				for x := range matrix {
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
+
+						go log.Printf("Processing item %d worker %d\n", i, workerID)
+					}
+				}
+			}(w)
+		}
+		wg.Wait()
+	}
+}
+
+func BenchmarkConcurrentGologPrint(b *testing.B) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		var wg sync.WaitGroup
+
+		for w := 0; w < benchmarkWorkers; w++ {
+			wg.Add(1)
+			go func(workerID int) {
+				defer wg.Done()
+
+				// Simulate CPU work
+				matrix := make([][]struct{}, i)
+				for x := range matrix {
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
+
+						go log.Print("\nProcessing item ", i, "worker", workerID)
+					}
+				}
+			}(w)
+		}
+		wg.Wait()
+	}
+}
+
+func BenchmarkConcurrentGologPrintSingle(b *testing.B) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		var wg sync.WaitGroup
+
+		for w := 0; w < benchmarkWorkers; w++ {
+			wg.Add(1)
+			go func(workerID int) {
+				defer wg.Done()
+
+				// Simulate CPU work
+				matrix := make([][]struct{}, i)
+				for x := range matrix {
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
+
+						go log.Print("Here")
+					}
+				}
+			}(w)
+		}
+		wg.Wait()
+	}
+}
+
 func BenchmarkConcurrentPrintArgsSingle(b *testing.B) {
 	asynclog.SetBuffer(asynclogBuffer)
 	asynclog.SetWorkers(asynclogWorkers)
