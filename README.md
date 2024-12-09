@@ -162,7 +162,7 @@ Same as `Here()` but includes file and line information.
 package main
 // we are in cmd/main.go
 import (
-    "github.com/ninesl/go-debug-logger"
+    "github.com/ninesl/asynclog-go"
 )
 
 func doSomeWork() {
