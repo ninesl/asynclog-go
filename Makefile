@@ -2,4 +2,4 @@
 COUNT ?= 1
 
 benchmark:
-	@go test -bench="Benchmark(Concurrent)" -count=$(COUNT) -benchmem
+	@go test -bench="Benchmark(ConcurrentGo|Fmt)" -count=$(COUNT) -benchmem

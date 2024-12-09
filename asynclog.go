@@ -288,7 +288,7 @@ var builderPool = sync.Pool{
 	},
 }
 
-// TODO: improvements
+// TODO: more improvements
 func consumeMessages() {
 	const (
 		batchSize     = 256       // Larger batches for better throughput
@@ -296,6 +296,7 @@ func consumeMessages() {
 		flushInterval = 500 * time.Millisecond
 	)
 
+	// Pre-allocate buffer
 	buf := make([]byte, 0, bufferSize)
 	w := bufio.NewWriterSize(output, bufferSize)
 	defer w.Flush()

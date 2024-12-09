@@ -1,5 +1,10 @@
 # asynclog
 
+NOTE: `go log.Println()` with flags set is generally more
+performant than this package. The worker pool design for consuming
+messages could be helpful, but any meaningful performance
+improvements would be negligible.
+
 A lightweight, concurrent logging package for Go applications with support for debugging line information.
 
 NOTE: Because of the overhead of the package, `fmt.Println()` on its own IS faster than using `asynclog` in most single-threaded Go programs.
@@ -29,6 +34,7 @@ In heavier logging workloads, increasing the worker count or message buffer size
 - Cache for `Print()`
 - `DebugArgs()`
 - Improving performance of `Args` functions 
+- Timestamps
 
 ## Installation
 ```go
@@ -108,21 +114,24 @@ You can run benchmarks using the following commands:
 These benchmarks simulate a concurrent environment to test `fmt.Println(msg)` vs `asynclog.Print(msg)`.
 
 
-```bash        
-# work being 'done' is time.Sleep(time.Nanosecond) to keep operations consistent
-# each print is "processed item X worker X"
+```go       
+// work being 'done' is time.Sleep(time.Nanosecond) to keep operations consistent
+// each print is "processed item X worker X"
 fmt.Println():          baseline
 fmt.Printf():           -0.08% slower
 fmt.Fprintf():          +0.05% faster
 asynclog.Debug():       +4.60% faster
 asynclog.Print():       +2.90% faster
 asynclog.PrintArgs():   -4.82% slower
-# each print is "Here"
+// each print is "Here"
 fmt.Println():          baseline
 fmt.Printf():           -3.26% slower
 fmt.Fprintf():          -2.80% slower
 asynclog.Debug():       +6.89% faster
 asynclog.Print():       +4.12% faster
+go log.Println():       +9.74% faster // log.SetFlags(log.LstdFlags | log.Lshortfile)
+go log.Print():         +3.84% faster // log.SetFlags(log.LstdFlags | log.Lshortfile)
+go log.Print():         // log.SetFlags(log.Lshortfile)
 asynclog.PrintArgs():   +1.23% faster
 asynclog.Here():        +5.59% faster
 asynclog.DebugHere():   +4.62% faster
