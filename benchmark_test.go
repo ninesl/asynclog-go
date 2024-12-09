@@ -3,6 +3,7 @@ package asynclog_test
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"sync"
@@ -86,6 +87,30 @@ func BenchmarkConcurrentFmtPrintf(b *testing.B) {
 						time.Sleep(time.Nanosecond)
 
 						fmt.Printf("Processing item %d worker %d\n", i, workerID)
+					}
+				}
+			}(w)
+		}
+		wg.Wait()
+	}
+}
+func BenchmarkConcurrentGologPrintln(b *testing.B) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	for i := 0; i < b.N; i++ {
+		var wg sync.WaitGroup
+
+		for w := 0; w < benchmarkWorkers; w++ {
+			wg.Add(1)
+			go func(workerID int) {
+				defer wg.Done()
+
+				// Simulate CPU work
+				matrix := make([][]struct{}, i)
+				for x := range matrix {
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
+						go log.Println("Processing item", i, "worker", workerID)
 					}
 				}
 			}(w)
@@ -363,6 +388,31 @@ func BenchmarkConcurrentDebugHere(b *testing.B) {
 						time.Sleep(time.Nanosecond)
 
 						asynclog.Here()
+					}
+				}
+			}(w)
+		}
+		wg.Wait()
+	}
+}
+
+func BenchmarkConcurrentGologPrintlnSingle(b *testing.B) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	for i := 0; i < b.N; i++ {
+		var wg sync.WaitGroup
+
+		for w := 0; w < benchmarkWorkers; w++ {
+			wg.Add(1)
+			go func(workerID int) {
+				defer wg.Done()
+
+				// Simulate CPU work
+				matrix := make([][]struct{}, i)
+				for x := range matrix {
+					for range matrix[x] {
+						time.Sleep(time.Nanosecond)
+						go log.Println("Processing item", i, "worker", workerID)
 					}
 				}
 			}(w)
